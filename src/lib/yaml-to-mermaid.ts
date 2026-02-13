@@ -122,24 +122,46 @@ function normalizeCondition(condText: string): string {
   return condText.trim();
 }
 
-/** 既知の条件関数かどうかを判定 */
-function getConditionStyle(condText: string): ConditionStyle | null {
-  return CONDITION_STYLES[normalizeCondition(condText)] ?? null;
+/** 否定（!）プレフィックスを解析する */
+function parseNegation(condText: string): { negated: boolean; inner: string } {
+  const trimmed = condText.trim();
+  if (trimmed.startsWith('!')) {
+    return { negated: true, inner: trimmed.slice(1).trim() };
+  }
+  return { negated: false, inner: trimmed };
 }
 
-/** always() 条件かどうかを判定（単一パート用） */
+/** 既知の条件関数かどうかを判定（否定を除去してから照合） */
+function getConditionStyle(condText: string): ConditionStyle | null {
+  const { inner } = parseNegation(condText);
+  return CONDITION_STYLES[normalizeCondition(inner)] ?? null;
+}
+
+/**
+ * always() 条件かどうかを判定（単一パート用）。
+ * !always() は常に true ではないため false を返す。
+ */
 function isAlwaysCondition(condText: string): boolean {
-  return normalizeCondition(condText) === 'always()';
+  const { negated, inner } = parseNegation(condText);
+  if (negated) return false;
+  return normalizeCondition(inner) === 'always()';
 }
 
 /**
  * 単一条件ノードの Mermaid 定義文字列を生成する。
- * - 既知の条件: スタジアム型 (["icon label"]):::className
+ * - 既知の条件（肯定）: スタジアム型 (["icon label"]):::className
+ * - 既知の条件（否定）: スタジアム型 (["icon NOT label"]):::classNameNeg  ※破線ボーダー
  * - カスタム条件: ダイアモンド {"icon condText"}:::condCustom
  */
 function formatConditionNode(condId: string, condText: string, indent: string = '  '): string {
-  const style = getConditionStyle(condText);
+  const { negated, inner } = parseNegation(condText);
+  const style = CONDITION_STYLES[normalizeCondition(inner)] ?? null;
+
   if (style) {
+    if (negated) {
+      // 否定の既知条件: 同じアイコン + "NOT" プレフィックス + 破線スタイル
+      return `${indent}${condId}(["${style.icon} NOT ${style.label}"]):::${style.className}Neg`;
+    }
     return `${indent}${condId}(["${style.icon} ${style.label}"]):::${style.className}`;
   }
   // カスタム条件: ダイアモンド + 🔧 アイコン
@@ -401,7 +423,10 @@ function mergeORChains(children: ConditionChainResult[], indent: string): Condit
 function generateConditionClassDefs(): string[] {
   const lines: string[] = [];
   for (const style of Object.values(CONDITION_STYLES)) {
+    // 肯定: 塗りつぶし背景
     lines.push(`  classDef ${style.className} fill:${style.fill},stroke:${style.stroke},color:#fff`);
+    // 否定: 白背景 + 破線ボーダー（アウトラインスタイル）
+    lines.push(`  classDef ${style.className}Neg fill:#fff,stroke:${style.stroke},color:${style.fill},stroke-dasharray:5 5,stroke-width:2px`);
   }
   lines.push(`  classDef ${CUSTOM_CONDITION_STYLE.className} fill:${CUSTOM_CONDITION_STYLE.fill},stroke:${CUSTOM_CONDITION_STYLE.stroke},color:#fff`);
   return lines;
