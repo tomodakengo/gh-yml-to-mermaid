@@ -22,6 +22,14 @@
   - [x] `!always()` は常に true ではないと正しく判定（Skip エッジ生成）
   - [x] 否定用 classDef（白背景 + 破線ボーダー + 色テキスト）を自動生成
 
+- [x] URL 共有機能
+  - [x] lz-string による YAML 圧縮 / 展開
+  - [x] ハッシュフラグメント（`#yaml=...`）で共有 URL を生成
+  - [x] 共有 URL を開くと自動的に YAML を復元
+  - [x] URL 長に応じた警告レベル表示（safe / warning / danger）
+  - [x] 展開失敗時のエラーハンドリング（URL トランケート対策）
+  - [x] Header に Share ボタン + トースト通知
+
 ## 未対応
 
 - [ ] マトリクス戦略（`strategy.matrix`）の可視化

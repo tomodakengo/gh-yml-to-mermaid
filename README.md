@@ -43,6 +43,15 @@ GitHub Actions のワークフロー YAML を Mermaid フローチャートに�
   - 例: `(failure() || cancelled()) && github.ref == 'refs/heads/main'`
   - → OR グループ（failure / cancelled）の出口が AND で ref チェックに接続
 
+### URL 共有機能
+
+現在の YAML を圧縮して URL に埋め込み、他のユーザーと共有できます。
+
+- Header の「Share」ボタンをクリックすると、共有 URL がクリップボードにコピーされます
+- 共有 URL を開くと、圧縮された YAML が自動的に展開されエディタに反映されます
+- バックエンド不要のクライアント完結型（lz-string 圧縮 + ハッシュフラグメント）
+- URL 長に応じた警告表示（2000 文字超で注意、4000 文字超で推奨メッセージ）
+
 ## 開発
 
 ```bash
@@ -62,3 +71,4 @@ npm run build
 - Vite
 - js-yaml
 - Mermaid
+- lz-string（URL 共有用圧縮）
