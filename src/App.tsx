@@ -3,6 +3,7 @@ import { Header } from './components/Header';
 import { YamlEditor } from './components/YamlEditor';
 import { MermaidPreview } from './components/MermaidPreview';
 import { MermaidCode } from './components/MermaidCode';
+import { SplitPane } from './components/SplitPane';
 import { convertYamlToMermaid } from './lib/yaml-to-mermaid';
 import { sampleWorkflows } from './lib/sample-workflows';
 import { extractYamlFromUrl, generateShareUrl, clearUrlHash } from './lib/url-share';
@@ -105,19 +106,28 @@ function App() {
         </div>
       )}
 
-      <main className="flex-1 flex min-h-0">
-        {/* 左パネル: YAML 入力 */}
-        <div className="w-1/2 border-r border-gray-200 flex flex-col min-h-0">
-          <YamlEditor value={yamlInput} onChange={setYamlInput} />
-        </div>
-
-        {/* 右パネル: プレビュー + コード */}
-        <div className="w-1/2 flex flex-col min-h-0">
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <MermaidPreview code={mermaidCode} error={error} />
-          </div>
-          <MermaidCode code={mermaidCode} />
-        </div>
+      <main className="flex-1 min-h-0">
+        <SplitPane
+          direction="horizontal"
+          defaultRatio={0.5}
+          minSize={200}
+          first={
+            <YamlEditor value={yamlInput} onChange={setYamlInput} />
+          }
+          second={
+            <SplitPane
+              direction="vertical"
+              defaultRatio={0.65}
+              minSize={80}
+              first={
+                <MermaidPreview code={mermaidCode} error={error} />
+              }
+              second={
+                <MermaidCode code={mermaidCode} />
+              }
+            />
+          }
+        />
       </main>
     </div>
   );

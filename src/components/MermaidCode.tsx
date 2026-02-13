@@ -29,8 +29,8 @@ export function MermaidCode({ code }: MermaidCodeProps) {
   if (!code) return null;
 
   return (
-    <div className="border-t border-gray-200">
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-b border-gray-200">
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-b border-gray-200 flex-shrink-0">
         <span className="text-sm font-semibold text-gray-700">
           Mermaid コード
         </span>
@@ -60,7 +60,7 @@ export function MermaidCode({ code }: MermaidCodeProps) {
           )}
         </button>
       </div>
-      <pre className="p-4 text-xs font-mono text-gray-800 bg-gray-50 overflow-auto max-h-48">
+      <pre className="flex-1 p-4 text-xs font-mono text-gray-800 bg-gray-50 overflow-auto min-h-0">
         {code}
       </pre>
     </div>
