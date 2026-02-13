@@ -109,7 +109,7 @@ export function SplitPane({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onDoubleClick={handleDoubleClick}
-        title="ドラッグでサイズ変更、ダブルクリックでリセット"
+        title="Drag to resize, double-click to reset"
       >
         {/* ハンドルのドット装飾 */}
         <div

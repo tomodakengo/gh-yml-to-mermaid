@@ -35,7 +35,7 @@ function App() {
     if (hash && hash.startsWith('#yaml=')) {
       // ハッシュがあるのに yamlInput が初期サンプルのまま → 展開失敗
       setToast({
-        message: '共有 URL の展開に失敗しました。URL が途中で切れている可能性があります。',
+        message: 'Failed to decode shared URL. The URL may have been truncated.',
         level: 'error',
         visible: true,
       });
@@ -70,7 +70,7 @@ function App() {
       });
     } catch {
       setToast({
-        message: 'クリップボードへのコピーに失敗しました。URL を手動でコピーしてください。',
+        message: 'Failed to copy to clipboard. Please copy the URL manually.',
         level: 'error',
         visible: true,
       });
@@ -99,7 +99,7 @@ function App() {
           <button
             onClick={() => setToast(prev => ({ ...prev, visible: false }))}
             className="ml-3 opacity-70 hover:opacity-100"
-            aria-label="閉じる"
+            aria-label="Close"
           >
             &times;
           </button>

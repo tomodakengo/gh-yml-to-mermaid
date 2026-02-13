@@ -32,18 +32,18 @@ function evaluateUrlLength(length: number): { level: UrlLengthLevel; message: st
   if (length <= URL_LENGTH_WARNING) {
     return {
       level: 'safe',
-      message: '共有 URL をコピーしました',
+      message: 'Share URL copied to clipboard',
     };
   }
   if (length <= URL_LENGTH_DANGER) {
     return {
       level: 'warning',
-      message: `コピーしました（URL が ${length} 文字と長いため、一部のアプリで切れる可能性があります）`,
+      message: `Copied (URL is ${length} chars long — may be truncated in some apps)`,
     };
   }
   return {
     level: 'danger',
-    message: `コピーしました（URL が ${length} 文字と非常に長いです。YAML を直接共有することを推奨します）`,
+    message: `Copied (URL is ${length} chars — consider sharing the YAML directly instead)`,
   };
 }
 

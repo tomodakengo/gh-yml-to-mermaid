@@ -10,11 +10,11 @@ export function YamlEditor({ value, onChange }: YamlEditorProps) {
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-b border-gray-200">
         <span className="text-sm font-semibold text-gray-700">
-          YAML 入力
+          YAML Input
         </span>
         <div className="flex items-center gap-2">
           <label htmlFor="sample-select" className="text-xs text-gray-500">
-            サンプル:
+            Sample:
           </label>
           <select
             id="sample-select"
@@ -28,7 +28,7 @@ export function YamlEditor({ value, onChange }: YamlEditorProps) {
             }}
           >
             <option value="" disabled>
-              選択してください
+              Select a sample
             </option>
             {sampleWorkflows.map((sample, i) => (
               <option key={i} value={i}>

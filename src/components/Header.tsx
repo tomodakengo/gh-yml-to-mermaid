@@ -28,7 +28,7 @@ export function Header({ onShare }: HeaderProps) {
           <button
             onClick={onShare}
             className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-            title="現在の YAML を含む共有 URL をクリップボードにコピー"
+            title="Copy share URL with current YAML to clipboard"
           >
             <svg
               className="w-4 h-4"

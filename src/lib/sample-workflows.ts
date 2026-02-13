@@ -6,8 +6,8 @@ export interface SampleWorkflow {
 
 export const sampleWorkflows: SampleWorkflow[] = [
   {
-    name: 'CI基本',
-    description: 'ビルドとテストの基本的なCIワークフロー（条件分岐付き）',
+    name: 'Basic CI',
+    description: 'Basic CI workflow with build and test (with conditional steps)',
     yaml: `name: CI
 on:
   push:
@@ -48,8 +48,8 @@ jobs:
 `,
   },
   {
-    name: 'CI/CDパイプライン',
-    description: 'ビルド・テスト・デプロイの完全なパイプライン',
+    name: 'CI/CD Pipeline',
+    description: 'Full pipeline with build, test, and deploy',
     yaml: `name: CI/CD Pipeline
 on:
   push:
@@ -117,8 +117,8 @@ jobs:
 `,
   },
   {
-    name: 'マトリクスビルド',
-    description: '複数のOS・バージョンでのマトリクスビルド',
+    name: 'Matrix Build',
+    description: 'Matrix build across multiple OS and versions',
     yaml: `name: Matrix Build
 on:
   push:
@@ -162,8 +162,8 @@ jobs:
 `,
   },
   {
-    name: 'Docker ビルド & プッシュ',
-    description: 'Docker イメージのビルドとレジストリへのプッシュ',
+    name: 'Docker Build & Push',
+    description: 'Build Docker image and push to registry',
     yaml: `name: Docker Build
 on:
   push:

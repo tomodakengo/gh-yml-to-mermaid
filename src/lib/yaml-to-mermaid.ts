@@ -15,11 +15,11 @@ export function convertYamlToMermaid(yamlString: string): ConversionResult {
     const workflow = yaml.load(yamlString) as WorkflowDefinition;
 
     if (!workflow || typeof workflow !== 'object') {
-      return { mermaidCode: '', error: 'YAML のパースに失敗しました。有効な YAML を入力してください。' };
+      return { mermaidCode: '', error: 'Failed to parse YAML. Please enter valid YAML.' };
     }
 
     if (!workflow.jobs || Object.keys(workflow.jobs).length === 0) {
-      return { mermaidCode: '', error: 'jobs セクションが見つかりません。GitHub Actions のワークフロー YAML を入力してください。' };
+      return { mermaidCode: '', error: 'No jobs section found. Please enter a GitHub Actions workflow YAML.' };
     }
 
     const lines: string[] = ['flowchart TD'];
@@ -75,7 +75,7 @@ export function convertYamlToMermaid(yamlString: string): ConversionResult {
     return { mermaidCode: lines.join('\n') };
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    return { mermaidCode: '', error: `パースエラー: ${message}` };
+    return { mermaidCode: '', error: `Parse error: ${message}` };
   }
 }
 

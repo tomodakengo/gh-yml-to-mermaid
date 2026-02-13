@@ -64,7 +64,7 @@ export function MermaidPreview({ code, error }: MermaidPreviewProps) {
     } catch {
       if (currentId === renderIdRef.current && svgContainerRef.current) {
         svgContainerRef.current.innerHTML =
-          '<p class="text-red-500 text-sm p-4">Mermaid のレンダリングに失敗しました。生成されたコードを確認してください。</p>';
+          '<p class="text-red-500 text-sm p-4">Failed to render Mermaid diagram. Please check the generated code.</p>';
       }
     }
   }, [code, error]);
@@ -148,13 +148,13 @@ export function MermaidPreview({ code, error }: MermaidPreviewProps) {
     <div className="flex flex-col h-full">
       {/* ヘッダー */}
       <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-b border-gray-200">
-        <span className="text-sm font-semibold text-gray-700">プレビュー</span>
+        <span className="text-sm font-semibold text-gray-700">Preview</span>
         {code && !error && (
           <div className="flex items-center gap-1">
             <button
               onClick={handleZoomOut}
               className="p-1 rounded hover:bg-gray-200 text-gray-600 transition-colors"
-              title="ズームアウト"
+              title="Zoom out"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -166,7 +166,7 @@ export function MermaidPreview({ code, error }: MermaidPreviewProps) {
             <button
               onClick={handleZoomIn}
               className="p-1 rounded hover:bg-gray-200 text-gray-600 transition-colors"
-              title="ズームイン"
+              title="Zoom in"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -175,7 +175,7 @@ export function MermaidPreview({ code, error }: MermaidPreviewProps) {
             <button
               onClick={handleReset}
               className="ml-1 px-2 py-0.5 text-xs rounded hover:bg-gray-200 text-gray-600 transition-colors"
-              title="リセット"
+              title="Reset"
             >
               Reset
             </button>
@@ -201,7 +201,7 @@ export function MermaidPreview({ code, error }: MermaidPreviewProps) {
           </div>
         ) : !code ? (
           <div className="flex items-center justify-center h-full text-gray-400 text-sm p-4">
-            左側に GitHub Actions の YAML を入力すると、ここにダイアグラムが表示されます
+            Enter a GitHub Actions workflow YAML on the left to see the diagram here
           </div>
         ) : (
           <div
