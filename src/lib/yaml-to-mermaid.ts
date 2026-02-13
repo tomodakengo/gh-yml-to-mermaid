@@ -131,12 +131,6 @@ function parseNegation(condText: string): { negated: boolean; inner: string } {
   return { negated: false, inner: trimmed };
 }
 
-/** 既知の条件関数かどうかを判定（否定を除去してから照合） */
-function getConditionStyle(condText: string): ConditionStyle | null {
-  const { inner } = parseNegation(condText);
-  return CONDITION_STYLES[normalizeCondition(inner)] ?? null;
-}
-
 /**
  * always() 条件かどうかを判定（単一パート用）。
  * !always() は常に true ではないため false を返す。
