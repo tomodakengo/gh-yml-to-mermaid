@@ -25,6 +25,21 @@ GitHub Actions のワークフロー YAML を Mermaid フローチャートに�
 - アクセシビリティ: アイコン（非色覚依存）+ テキスト + 色の3重表現
 - `always()` は常に実行されるため、Skip エッジを生成しません
 
+### 複合条件（&& / || 混在対応）
+
+`&&` や `||` で結合された複合条件を個別のノードに分解し、論理関係をグラフで表現します。
+演算子の優先順位（`&&` > `||`）と括弧によるグルーピングにも対応しています。
+
+- **AND（&&）**: 各条件を `-->|AND|` で直列チェーン接続。全条件を通過する必要があることを表現
+  - 例: `always() && github.event_name == 'push'`
+  - → `🔄 Always Run` -->|AND|--> `🔧 github.event_name == 'push'`
+- **OR（||）**: 各条件を `-.->|OR|` でフォールスルー接続。いずれかの条件一致でステップが実行されることを表現
+  - 例: `failure() || cancelled()`
+  - → `❌ Failure Only` -.->|OR|--> `⛔ Cancelled`（どちらからも Yes エッジでステップへ）
+- **AND/OR 混在**: AST（抽象構文木）ベースで再帰的にパース・レンダリング
+  - 例: `(failure() || cancelled()) && github.ref == 'refs/heads/main'`
+  - → OR グループ（failure / cancelled）の出口が AND で ref チェックに接続
+
 ## 開発
 
 ```bash
