@@ -1,73 +1,46 @@
-# React + TypeScript + Vite
+# gh-yml-to-mermaid
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+GitHub Actions のワークフロー YAML を Mermaid フローチャートに変換するツールです。
 
-Currently, two official plugins are available:
+## 機能
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- GitHub Actions YAML を Mermaid フローチャートに自動変換
+- トリガー、ジョブ、ステップの可視化
+- ジョブ間の依存関係（`needs`）の表示
+- 条件分岐（`if`）のグラフィカル表示
+- 再利用ワークフロー（`uses`）対応
 
-## React Compiler
+### 条件バッジ表示
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+`if` 条件をグラフィカルなバッジで表示し、初心者にも分かりやすい見た目にしています。
 
-## Expanding the ESLint configuration
+| 条件 | 表示 | ノード形状 | 色 |
+|---|---|---|---|
+| `always()` | 🔄 Always Run | スタジアム型（丸角） | 青 |
+| `success()` | ✅ Success Only | スタジアム型（丸角） | 緑 |
+| `failure()` | ❌ Failure Only | スタジアム型（丸角） | 赤 |
+| `cancelled()` | ⛔ Cancelled | スタジアム型（丸角） | オレンジ |
+| カスタム条件 | 🔧 + 条件式 | ダイアモンド | グレー |
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- アクセシビリティ: アイコン（非色覚依存）+ テキスト + 色の3重表現
+- `always()` は常に実行されるため、Skip エッジを生成しません
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 開発
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+```bash
+# 依存関係のインストール
+npm install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# 開発サーバーの起動
+npm run dev
+
+# ビルド
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 技術スタック
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- React + TypeScript
+- Vite
+- js-yaml
+- Mermaid

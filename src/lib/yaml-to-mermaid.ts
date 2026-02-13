@@ -29,7 +29,7 @@ export function convertYamlToMermaid(yamlString: string): ConversionResult {
       lines.push(...generateTriggers(workflow.on));
     }
 
-    // ジョブレベルの条件分岐ダイアモンドノードを生成
+    // ジョブレベルの条件バッジノードを生成
     lines.push(...generateJobConditionNodes(workflow.jobs));
 
     // ジョブの生成（トポロジカルソート順）
@@ -42,23 +42,31 @@ export function convertYamlToMermaid(yamlString: string): ConversionResult {
       }
     }
 
-    // トリガー -> ルートジョブへのエッジ（条件分岐対応）
+    // トリガー -> ルートジョブへのエッジ（条件バッジ対応）
     if (workflow.on) {
       const rootJobs = getRootJobs(workflow.jobs);
       for (const rootJob of rootJobs) {
         const job = workflow.jobs[rootJob];
         if (job?.if) {
-          // トリガー -> ダイアモンド -> ジョブ
+          // トリガー -> バッジ -> ジョブ
           lines.push(`  triggers --> cond_job_${sanitizeId(rootJob)}`);
-          lines.push(`  cond_job_${sanitizeId(rootJob)} -->|Yes| job_${sanitizeId(rootJob)}`);
+          if (isAlwaysCondition(job.if)) {
+            // always() は分岐なし直結
+            lines.push(`  cond_job_${sanitizeId(rootJob)} --> job_${sanitizeId(rootJob)}`);
+          } else {
+            lines.push(`  cond_job_${sanitizeId(rootJob)} -->|Yes| job_${sanitizeId(rootJob)}`);
+          }
         } else {
           lines.push(`  triggers --> job_${sanitizeId(rootJob)}`);
         }
       }
     }
 
-    // ジョブ間の依存関係エッジ（条件分岐対応）
+    // ジョブ間の依存関係エッジ（条件バッジ対応）
     lines.push(...generateJobEdges(workflow.jobs));
+
+    // 条件バッジ用の classDef 定義を追加
+    lines.push(...generateConditionClassDefs());
 
     return { mermaidCode: lines.join('\n') };
   } catch (e) {
@@ -76,8 +84,72 @@ function sanitizeId(name: string): string {
 function escapeLabel(text: string): string {
   return text
     .replace(/"/g, '#quot;')
-    .replace(/\n/g, ' ')
+    .replace(/\n/g, '<br/>')
     .substring(0, 80);
+}
+
+// ---------------------------------------------------------------------------
+// 条件バッジ表示（Graphical Condition Badges）
+// ---------------------------------------------------------------------------
+
+/** 既知の条件関数のスタイル定義 */
+interface ConditionStyle {
+  icon: string;
+  label: string;
+  className: string;
+  fill: string;
+  stroke: string;
+}
+
+const CONDITION_STYLES: Record<string, ConditionStyle> = {
+  'always()':    { icon: '🔄', label: 'Always Run',    className: 'condAlways',    fill: '#4A90D9', stroke: '#2E6EB5' },
+  'success()':   { icon: '✅', label: 'Success Only',  className: 'condSuccess',   fill: '#28A745', stroke: '#1E7E34' },
+  'failure()':   { icon: '❌', label: 'Failure Only',  className: 'condFailure',   fill: '#DC3545', stroke: '#BD2130' },
+  'cancelled()': { icon: '⛔', label: 'Cancelled',     className: 'condCancelled', fill: '#FD7E14', stroke: '#E36209' },
+};
+
+/** カスタム条件のスタイル */
+const CUSTOM_CONDITION_STYLE: Omit<ConditionStyle, 'label'> = {
+  icon: '🔧', className: 'condCustom', fill: '#6C757D', stroke: '#545B62',
+};
+
+/** 条件文字列を正規化（前後の空白除去） */
+function normalizeCondition(condText: string): string {
+  return condText.trim();
+}
+
+/** 既知の条件関数かどうかを判定 */
+function getConditionStyle(condText: string): ConditionStyle | null {
+  return CONDITION_STYLES[normalizeCondition(condText)] ?? null;
+}
+
+/** always() 条件かどうかを判定 */
+function isAlwaysCondition(condText: string): boolean {
+  return normalizeCondition(condText) === 'always()';
+}
+
+/**
+ * 条件ノードの Mermaid 定義文字列を生成する。
+ * - 既知の条件: スタジアム型 (["icon label"]):::className
+ * - カスタム条件: ダイアモンド {"icon condText"}:::condCustom
+ */
+function formatConditionNode(condId: string, condText: string, indent: string = '  '): string {
+  const style = getConditionStyle(condText);
+  if (style) {
+    return `${indent}${condId}(["${style.icon} ${style.label}"]):::${style.className}`;
+  }
+  // カスタム条件: ダイアモンド + 🔧 アイコン
+  return `${indent}${condId}{"${CUSTOM_CONDITION_STYLE.icon} ${escapeLabel(condText)}"}:::${CUSTOM_CONDITION_STYLE.className}`;
+}
+
+/** classDef 定義行を生成（Mermaid 末尾に追加） */
+function generateConditionClassDefs(): string[] {
+  const lines: string[] = [];
+  for (const style of Object.values(CONDITION_STYLES)) {
+    lines.push(`  classDef ${style.className} fill:${style.fill},stroke:${style.stroke},color:#fff`);
+  }
+  lines.push(`  classDef ${CUSTOM_CONDITION_STYLE.className} fill:${CUSTOM_CONDITION_STYLE.fill},stroke:${CUSTOM_CONDITION_STYLE.stroke},color:#fff`);
+  return lines;
 }
 
 /** トリガーセクションを生成 */
@@ -89,7 +161,7 @@ function generateTriggers(on: WorkflowTrigger): string[] {
   for (const trigger of triggers) {
     const id = `trigger_${sanitizeId(trigger.name)}`;
     const label = trigger.detail
-      ? `${trigger.name}\\n${escapeLabel(trigger.detail)}`
+      ? `${trigger.name}<br/>${escapeLabel(trigger.detail)}`
       : trigger.name;
     lines.push(`    ${id}["${label}"]`);
   }
@@ -152,24 +224,24 @@ function parseTriggers(on: WorkflowTrigger): TriggerInfo[] {
   return [{ name: 'unknown' }];
 }
 
-/** ジョブレベルの条件分岐ダイアモンドノードを生成 */
+/** ジョブレベルの条件バッジノードを生成 */
 function generateJobConditionNodes(jobs: Record<string, JobDefinition>): string[] {
   const lines: string[] = [];
   for (const [jobName, job] of Object.entries(jobs)) {
     if (job.if) {
       const condId = `cond_job_${sanitizeId(jobName)}`;
-      lines.push(`  ${condId}{"${escapeLabel(job.if)}"}`);
+      lines.push(formatConditionNode(condId, job.if));
     }
   }
   return lines;
 }
 
-/** ジョブの subgraph を生成（ステップ内の条件分岐もダイアモンド化） */
+/** ジョブの subgraph を生成（ステップ内の条件バッジ対応） */
 function generateJob(jobName: string, job: JobDefinition): string[] {
   const lines: string[] = [];
   const jobId = `job_${sanitizeId(jobName)}`;
 
-  // subgraph ラベルの組み立て（if はダイアモンドに分離したので含めない）
+  // subgraph ラベルの組み立て（if はバッジノードに分離したので含めない）
   const displayName = job.name || jobName;
   const runsOn = job['runs-on']
     ? ` (${Array.isArray(job['runs-on']) ? job['runs-on'].join(', ') : job['runs-on']})`
@@ -195,9 +267,9 @@ function generateJob(jobName: string, job: JobDefinition): string[] {
       const stepId = `${sanitizeId(jobName)}_s${i}`;
       const stepLabel = getStepLabel(step);
 
-      // if 条件がある場合はダイアモンドノードを追加
+      // if 条件がある場合はバッジノードを追加
       if (step.if) {
-        lines.push(`    cond_${stepId}{"${escapeLabel(step.if)}"}`);
+        lines.push(formatConditionNode(`cond_${stepId}`, step.if, '    '));
       }
       lines.push(`    ${stepId}["${escapeLabel(stepLabel)}"]`);
     }
@@ -206,10 +278,15 @@ function generateJob(jobName: string, job: JobDefinition): string[] {
     for (let i = 0; i < steps.length; i++) {
       const step = steps[i];
       const stepId = `${sanitizeId(jobName)}_s${i}`;
+      const condIsAlways = step.if ? isAlwaysCondition(step.if) : false;
 
-      // ダイアモンド -> ステップ（Yes パス）
+      // バッジ -> ステップ（always() は分岐なし直結、それ以外は Yes パス）
       if (step.if) {
-        lines.push(`    cond_${stepId} -->|Yes| ${stepId}`);
+        if (condIsAlways) {
+          lines.push(`    cond_${stepId} --> ${stepId}`);
+        } else {
+          lines.push(`    cond_${stepId} -->|Yes| ${stepId}`);
+        }
       }
 
       // 前のステップからの接続
@@ -220,7 +297,8 @@ function generateJob(jobName: string, job: JobDefinition): string[] {
       }
 
       // Skip パス（条件が false の場合、次のステップへ）
-      if (step.if && i < steps.length - 1) {
+      // always() は常に実行されるため Skip エッジを生成しない
+      if (step.if && !condIsAlways && i < steps.length - 1) {
         const nextStepId = `${sanitizeId(jobName)}_s${i + 1}`;
         const nextEntry = steps[i + 1].if ? `cond_${nextStepId}` : nextStepId;
         lines.push(`    cond_${stepId} -.->|Skip| ${nextEntry}`);
@@ -255,10 +333,10 @@ function getRootJobs(jobs: Record<string, JobDefinition>): string[] {
     .map(([name]) => name);
 }
 
-/** ジョブ間の依存関係エッジを生成（条件分岐対応） */
+/** ジョブ間の依存関係エッジを生成（条件バッジ対応） */
 function generateJobEdges(jobs: Record<string, JobDefinition>): string[] {
   const lines: string[] = [];
-  const yesEdgeAdded = new Set<string>();
+  const condEdgeAdded = new Set<string>();
 
   for (const [jobName, job] of Object.entries(jobs)) {
     if (!job.needs) continue;
@@ -266,12 +344,17 @@ function generateJobEdges(jobs: Record<string, JobDefinition>): string[] {
     const needs = Array.isArray(job.needs) ? job.needs : [job.needs];
     for (const dep of needs) {
       if (job.if) {
-        // 依存先 -> ダイアモンド
+        // 依存先 -> バッジ
         lines.push(`  job_${sanitizeId(dep)} --> cond_job_${sanitizeId(jobName)}`);
-        // ダイアモンド -> ジョブ（Yes パス、1回だけ追加）
-        if (!yesEdgeAdded.has(jobName)) {
-          lines.push(`  cond_job_${sanitizeId(jobName)} -->|Yes| job_${sanitizeId(jobName)}`);
-          yesEdgeAdded.add(jobName);
+        // バッジ -> ジョブ（1回だけ追加）
+        if (!condEdgeAdded.has(jobName)) {
+          if (isAlwaysCondition(job.if)) {
+            // always() は分岐なし直結
+            lines.push(`  cond_job_${sanitizeId(jobName)} --> job_${sanitizeId(jobName)}`);
+          } else {
+            lines.push(`  cond_job_${sanitizeId(jobName)} -->|Yes| job_${sanitizeId(jobName)}`);
+          }
+          condEdgeAdded.add(jobName);
         }
       } else {
         lines.push(`  job_${sanitizeId(dep)} --> job_${sanitizeId(jobName)}`);
