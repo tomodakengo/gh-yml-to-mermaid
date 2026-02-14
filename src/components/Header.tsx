@@ -47,7 +47,7 @@ export function Header({ onShare }: HeaderProps) {
           </button>
         )}
         <a
-          href="https://github.com"
+          href="https://github.com/tomodakengo/gh-yml-to-mermaid"
           target="_blank"
           rel="noopener noreferrer"
           className="text-gray-400 hover:text-white transition-colors text-sm"
